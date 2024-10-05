@@ -46,11 +46,46 @@ Clone the repository, set up the virtual environment, and install the required p
 Make sure to replace the placeholders (`your_openai_api_key`, `your_serpapi_api_key`, `your_langchain_api_key`, `your_sendgrid_api_key`) with your actual keys.
 This version includes the necessary environment variables for OpenAI, SERPAPI, LangChain, and SendGrid and the LANGCHAIN_TRACING_V2 and LANGCHAIN_PROJECT configurations.
 
-## Running the AI Travel Agent
-### Kick of the chatbot by running:
+### How to Run the Chatbot
+To start the chatbot, run the following command:
 ```
 streamlit run app.py
 ```
+
+### Using the Chatbot
+Once launched, simply enter your travel request. For example:
+> I want to travel to Amsterdam from Madrid from October 1st to 7th. Find me flights and 4-star hotels.
+
+
+![photo1](https://github.com/user-attachments/assets/eb12d697-a445-4b13-b084-d2052f91d7bc)
+
+The chatbot will generate results that include logos and links for easy navigation.
+
+> **Note**: The data is fetched via Google Flights and Google Hotels APIs. There’s no affiliation or promotion of any particular brand.
+
+
+#### Example Outputs
+
+- Flight and hotel options with relevant logos and links for easy reference:
+
+![photo2](https://github.com/user-attachments/assets/741e010c-22cf-4d31-a518-441b076ec58f)
+
+![photo3](https://github.com/user-attachments/assets/a29173c7-852d-41ab-b3fe-94e6cca83c78)
+
+
+#### Email Integration
+The email integration is implemented using the **human-in-the-loop** feature, allowing you to stop the agent execution and return control back to the user, providing flexibility in managing the travel data before sending it via email.
+
+![photo4](https://github.com/user-attachments/assets/53775c87-7881-40c3-9b23-2885ed020e46)
+
+- Travel data formatted in HTML, delivered straight to your inbox:
+![photo5](https://github.com/user-attachments/assets/02641ce1-b303-4020-9849-7d77f596a6ba)
+![photo6](https://github.com/user-attachments/assets/1c3d8a35-148d-4144-829a-b1db6e3b3dde)
+
+### Learn More
+For a detailed explanation of the AI Travel Agent and its underlying technology, check out the full article on Medium:
+
+[How the AI Travel Agent Works: A Deep Dive](https://medium.com/your-article-link-here)
 
 ## License
 Distributed under the MIT License. See LICENSE.txt for more information.
