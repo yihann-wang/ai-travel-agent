@@ -1,5 +1,6 @@
 # pylint: disable = http-used,print-used,no-self-use
 
+import datetime
 import operator
 import os
 from typing import Annotated, TypedDict
@@ -17,22 +18,24 @@ from agents.tools.hotels_finder import hotels_finder
 
 _ = load_dotenv()
 
+CURRENT_YEAR = datetime.datetime.now().year
+
 
 class AgentState(TypedDict):
     messages: Annotated[list[AnyMessage], operator.add]
 
 
-TOOLS_SYSTEM_PROMPT = """You are a smart travel agency. Use the tools to look up information.
+TOOLS_SYSTEM_PROMPT = f"""You are a smart travel agency. Use the tools to look up information.
     You are allowed to make multiple calls (either together or in sequence).
     Only look up information when you are sure of what you want.
-    The current year is 2024.
+    The current year is {CURRENT_YEAR}.
     If you need to look up some information before asking a follow up question, you are allowed to do that!
     I want to have in your output links to hotels websites and flights websites (if possible).
     I want to have as well the logo of the hotel and the logo of the airline company (if possible).
     In your output always include the price of the flight and the price of the hotel and the currency as well (if possible).
-    for example for hotels- 
+    for example for hotels-
     Rate: $581 per night
-    Total: $3,488 
+    Total: $3,488
     """
 
 TOOLS = [flights_finder, hotels_finder]
