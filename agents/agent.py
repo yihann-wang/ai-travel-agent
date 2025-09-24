@@ -123,7 +123,12 @@ class Agent:
 
     def __init__(self):
         self._tools = {t.name: t for t in TOOLS}
-        self._tools_llm = ChatOpenAI(model='gpt-4o').bind_tools(TOOLS)
+        # 配置DeepSeek API
+        base_url = os.getenv('OPENAI_BASE_URL', 'https://api.deepseek.com')
+        self._tools_llm = ChatOpenAI(
+            model='deepseek-chat', 
+            base_url=base_url
+        ).bind_tools(TOOLS)
 
         builder = StateGraph(AgentState)
         builder.add_node('call_tools_llm', self.call_tools_llm)
@@ -147,22 +152,43 @@ class Agent:
         return 'more_tools'
 
     def email_sender(self, state: AgentState):
-        print('Sending email')
-        email_llm = ChatOpenAI(model='gpt-4o', temperature=0.1)  # Instantiate another LLM
+        print('Email功能已跳过 - 如需启用请配置SendGrid')
+        # 配置DeepSeek API用于邮件生成
+        base_url = os.getenv('OPENAI_BASE_URL', 'https://api.deepseek.com')
+        email_llm = ChatOpenAI(model='deepseek-chat', base_url=base_url, temperature=0.1)
         email_message = [SystemMessage(content=EMAILS_SYSTEM_PROMPT), HumanMessage(content=state['messages'][-1].content)]
         email_response = email_llm.invoke(email_message)
-        print('Email content:', email_response.content)
-
-        message = Mail(from_email=os.environ['FROM_EMAIL'], to_emails=os.environ['TO_EMAIL'], subject=os.environ['EMAIL_SUBJECT'],
-                       html_content=email_response.content)
+        print('生成的邮件内容预览:')
+        print(email_response.content)
+        
+        # 保存HTML预览文件
         try:
-            sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            response = sg.send(message)
-            print(response.status_code)
-            print(response.body)
-            print(response.headers)
+            with open('email_preview.html', 'w', encoding='utf-8') as f:
+                f.write(email_response.content)
+            print('💾 邮件预览已保存到: email_preview.html')
+            print('🌐 你可以用浏览器打开该文件查看邮件效果')
         except Exception as e:
-            print(str(e))
+            print(f'保存预览文件失败: {e}')
+        
+        # 检查是否配置了SendGrid
+        sendgrid_key = os.environ.get('SENDGRID_API_KEY')
+        if not sendgrid_key or sendgrid_key == 'your_sendgrid_api_key_here':
+            print('⚠️  SendGrid未配置，邮件发送已跳过')
+            print('💡 如需启用邮件功能，请在.env文件中配置SendGrid相关信息')
+            # 返回包含HTML内容的消息，用于在Streamlit中显示
+            return {'messages': [SystemMessage(content=f"旅行计划已生成！\n\n邮件预览:\n\n{email_response.content}")]}
+        
+        # 如果配置了SendGrid，则尝试发送
+        try:
+            message = Mail(from_email=os.environ['FROM_EMAIL'], to_emails=os.environ['TO_EMAIL'], 
+                          subject=os.environ['EMAIL_SUBJECT'], html_content=email_response.content)
+            sg = SendGridAPIClient(sendgrid_key)
+            response = sg.send(message)
+            print(f'✅ 邮件发送成功! 状态码: {response.status_code}')
+            return {'messages': [SystemMessage(content=f"旅行计划已生成并发送到您的邮箱!\n\n邮件内容:\n\n{email_response.content}")]}
+        except Exception as e:
+            print(f'❌ 邮件发送失败: {str(e)}')
+            return {'messages': [SystemMessage(content=f"旅行计划已生成，但邮件发送失败: {str(e)}\n\n邮件预览:\n\n{email_response.content}")]}
 
     def call_tools_llm(self, state: AgentState):
         messages = state['messages']
